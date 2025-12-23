@@ -1,0 +1,31 @@
+apiVersion: apps.rumraisin.me/v1  
+kind: MysqlCluster
+metadata:
+  name: test-cluster
+  namespace: default
+spec:
+  # 镜像必须指定
+  image: mysql:5.7
+
+  # 副本数必须指定，最少为 2
+  replicas: 3
+
+  # storage必须指定
+  storage:
+    # 1Gi用于测试
+    size: 1Gi
+    # 可选：不写使用默认storageClassName
+    # storageClassName: standard
+
+  # 资源限制必须指定
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # secret必须指定
+  secretName:
+    name: test-secret
