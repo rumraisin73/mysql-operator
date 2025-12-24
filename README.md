@@ -1,17 +1,22 @@
 ## mysql-operator
 
-**mysql-operator** 是云原生项目课的大作业，用于在Kubernetes集群中自动化管理mysql实例的生命周期和主从切换。
+**mysql-operator** 是云原生的大作业，用于在Kubernetes集群中自动化管理mysql实例的生命周期和主从切换。
 
-当前版本：**v0.0.1**
+当前版本：**v0.0.2**
+
+### 版本更新
+
+- v0.0.2 增加了对扩容的支持，修正了一些bug
 
 ### 功能特性
 
-1. 自动创建mysql集群并初始化，做好主从关系
-2. 使用statefulset管理mysql实例的副本数，挂掉自动重启
-3. 选举算法使用gtid加固定顺序
-4. 使用最小权限repl账户同步数据
-5. 支持修改configmap后自动重启pod
-6. 优化了kubectl get显示体验
+- 自动创建mysql集群并初始化，做好主从关系
+- 使用statefulset管理mysql实例的副本数，自动重启
+- 支持扩容操作，缩容操作自动忽略
+- 选举算法使用gtid加固定顺序
+- 使用最小权限repl账户同步数据
+- 支持修改configmap后自动重启pod
+- 优化了kubectl get显示体验
 
 ### 快速开始
 
@@ -51,8 +56,9 @@ make run
 **部署到集群**
 
 ```bash
-docker build -t mysql-operator:v0.0.1 .
-推送至远程仓库让k8s拉取
+make docker-build IMG=mysql-operator:v0.0.2
+# 自行推送至远程仓库
+make deploy IMG=<仓库地址>/mysql-operator:v0.0.2
 ```
 
 ### 示例
@@ -62,8 +68,8 @@ docker build -t mysql-operator:v0.0.1 .
 ```bash
 kubectl create secret generic test-secret \
   -n default \
-  --from-literal=root-password=Egon@666 \
-  --from-literal=repl-password=Egon@999
+  --from-literal=root-password=root@111 \
+  --from-literal=repl-password=repl@111
 ```
 
 **自定义资源**
@@ -77,13 +83,13 @@ metadata:
 spec:
   # 镜像必须指定
   image: mysql:5.7
-  # 副本数必须指定，最少为 2
-  replicas: 3
+  # 副本数可选，最少为2，默认为3
+  #replicas: 3
   # storage必须指定
   storage:
     # 1Gi用于测试
     size: 1Gi
-    # 可选：不写使用默认storageClassName
+    # 可选：不写使用默认storageClass
     storageClassName: standard
   # 资源限制必须指定
   resources:
@@ -110,6 +116,5 @@ go run test/test_write.go
 
 ### 下一步计划
 
-1. 增加对扩缩容的支持
-2. 增加conditions显示
-3. 增加对存储扩容的支持
+- 增加conditions显示
+- 增加对存储扩容的支持

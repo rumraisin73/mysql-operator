@@ -23,6 +23,7 @@ type MysqlClusterSpec struct {
 
 	// +kubebuilder:validation:Minimum=2
 	// +kubebuilder:default=3
+	// +kubebuilder:validation:Optional
 	// 使用指针区分用户未设置和设置为0的情况，当然我们没有缩容所以没用。建议设置最小值和默认值
 	// 避免使用无符号数，原因是兼容性和溢出
 	Replicas *int32 `json:"replicas,omitempty"`

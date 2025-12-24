@@ -15,7 +15,7 @@ func main() {
 	dbHost := "test-cluster-svc-master.default"
 	dbPort := "3306"
 	dbUser := "root"
-	dbPass := "Egon@666"
+	dbPass := "root111"
 	dbName := "test_write"
 
 	dsnBase := fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPass, dbHost, dbPort)
@@ -85,7 +85,7 @@ func main() {
 
 		// 论成功失败，序号自增，用于检测故障期
 		seqNo++
-		time.Sleep( 1 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -106,4 +106,3 @@ func initDB(db *sql.DB) {
 		time.Sleep(2 * time.Second)
 	}
 }
-

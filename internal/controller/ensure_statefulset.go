@@ -21,24 +21,47 @@ func (r *MysqlClusterReconciler) getOrCreateStatefulSet(ctx context.Context, sta
 	err := r.Get(ctx, client.ObjectKey{Namespace: cluster.Namespace, Name: statefulSetName}, existingSts)
 
 	if err == nil {
+		// 定义一个标志位，记录是否发生了变化
+		needsUpdate := false
 
-		// 获取当前statefulset中记录的hash
+		// 检查configMap Hash
 		currentHash := existingSts.Spec.Template.Annotations["checksum/config"]
-
-		// 如果hash不一致，说明配置变了
 		if currentHash != configHash {
-
-			// 防御性编程：如果map为nil，写入会报错
 			if existingSts.Spec.Template.Annotations == nil {
 				existingSts.Spec.Template.Annotations = make(map[string]string)
 			}
 			existingSts.Spec.Template.Annotations["checksum/config"] = configHash
+			logger.Info("ConfigMap发生变化，更新Hash", "old", currentHash, "new", configHash)
+			needsUpdate = true
+		}
 
-			// k8s测到PodTemplate变了，会自动触发RollingUpdate
+		currentReplicas := *existingSts.Spec.Replicas
+		desiredReplicas := *cluster.Spec.Replicas
+
+		// 只扩不缩
+		if desiredReplicas > currentReplicas {
+
+			logger.Info("触发扩容操作", "current", currentReplicas, "target", desiredReplicas)
+
+			// 创建一个新的int32变量取地址
+			val := desiredReplicas
+			existingSts.Spec.Replicas = &val
+			needsUpdate = true
+
+		} else if desiredReplicas < currentReplicas {
+
+			logger.Info("4.3警告：检测到缩容请求，但当前策略禁止自动缩容。忽略该请求。",
+				"desired", desiredReplicas,
+				"current", currentReplicas)
+
+		}
+
+		if needsUpdate {
+
 			if err := r.Update(ctx, existingSts); err != nil {
-				return nil, fmt.Errorf("4.3更新StatefulSet配置Hash失败: %w", err)
+				return nil, fmt.Errorf("4.3更新StatefulSet失败: %w", err)
 			}
-			logger.Info("4.3configMap发生变化，statefulset 将触发滚动重启", "statefulSetName", statefulSetName)
+
 		}
 
 		return existingSts, nil

@@ -90,7 +90,7 @@ func (r *MysqlClusterReconciler) updateStatus(ctx context.Context, cluster *dbv1
 	// 显示字段
 	// 格式化为 "2/3" 的形式，优化kubectl get体验
 	masterDisplay := fmt.Sprintf("%d/%d", masterCount, int32(1))
-	slaveDisplay := fmt.Sprintf("%d/%d", slaveCount, desiredReplicas-1)
+	slaveDisplay := fmt.Sprintf("%d/%d", slaveCount, len(snapshot.Pods)-1)
 
 	currentMasterName := ""
 	if masterNode != nil {

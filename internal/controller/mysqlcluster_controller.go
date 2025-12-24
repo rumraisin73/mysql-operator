@@ -185,6 +185,7 @@ func (r *MysqlClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *MysqlClusterReconciler) findObjectsForPod(ctx context.Context, pod client.Object) []reconcile.Request {
 
 	labels := pod.GetLabels()
+	// 待优化：所有带有app标签的pod都会监听，如app=nginx，会浪费资源
 	clusterName, exists := labels["app"]
 	if !exists {
 		return []reconcile.Request{}
